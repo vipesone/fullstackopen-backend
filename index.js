@@ -53,9 +53,9 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   // Make sure user has given name and number input.
   if (!request.body.name) {
-    next({name: 'NameMissing'})
+    next({name: 'NameMissing'}).end()
   } else if (!request.body.number) {
-    next({name: 'NumberMissing'})
+    next({name: 'NumberMissing'}).end()
   }
 
   const person = new Person({
