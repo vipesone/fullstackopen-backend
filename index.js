@@ -1,7 +1,17 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
+
 app.use(express.json())
+
+// Create custom token for morgan.
+morgan.token('request-body', function (request, response) {
+  if (request.method == 'POST' && request.body) {
+    return JSON.stringify(request.body)
+  }
+})
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :request-body'))
 
 let persons = [
   {
@@ -86,7 +96,6 @@ app.get('/info', (request, response) => {
     <p>Phonebook has info for ${persons.length} people</p>
     <p>${new Date().toString()}</p>
   `)
-
 })
 
 const PORT = 3001
