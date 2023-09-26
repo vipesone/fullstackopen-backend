@@ -43,7 +43,11 @@ app.put('/api/persons/:id', (request, response, next) => {
     number: request.body.number,
   }
 
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    request.params.id,
+    person,
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
@@ -51,13 +55,6 @@ app.put('/api/persons/:id', (request, response, next) => {
 })
 
 app.post('/api/persons', (request, response, next) => {
-  // Make sure user has given name and number input.
-  if (!request.body.name) {
-    next({name: 'NameMissing'}).end()
-  } else if (!request.body.number) {
-    next({name: 'NumberMissing'}).end()
-  }
-
   const person = new Person({
     name: request.body.name,
     number: request.body.number
@@ -86,13 +83,9 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'Malformed id' })
-  } else if (error.name == 'NameMissing') {
+  } else if (error.name == 'ValidationError') {
     return response.status(400).json({
-      message: 'Person should have a name'
-    })
-  } else if (error.name == 'NumberMissing') {
-    return response.status(400).json({
-      message: 'Person should have a phone number'
+      error: error.message
     })
   }
 
