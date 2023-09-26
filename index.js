@@ -10,8 +10,8 @@ app.use(cors())
 app.use(express.json())
 
 // Create custom token for morgan.
-morgan.token('request-body', function (request, response) {
-  if (request.method == 'POST' && request.body) {
+morgan.token('request-body', function (request) {
+  if (request.method === 'POST' && request.body) {
     return JSON.stringify(request.body)
   }
 })
@@ -21,18 +21,18 @@ app.get('/api/persons', (request, response, next) => {
   Person.find({}).then(result => {
     response.json(result)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
     response.json(person)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndRemove(request.params.id).then(result => {
+  Person.findByIdAndRemove(request.params.id).then(() => {
     response.status(204).end()
   }).catch(error => next(error))
 })
@@ -58,12 +58,12 @@ app.post('/api/persons', (request, response, next) => {
   const person = new Person({
     name: request.body.name,
     number: request.body.number
-  });
+  })
 
   person.save().then(savedPerson => {
     response.status(200).json(savedPerson)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/info', (request, response, next) => {
@@ -73,7 +73,7 @@ app.get('/info', (request, response, next) => {
       <p>${new Date().toString()}</p>
     `)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 
 })
 
@@ -83,7 +83,7 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'Malformed id' })
-  } else if (error.name == 'ValidationError') {
+  } else if (error.name === 'ValidationError') {
     return response.status(400).json({
       error: error.message
     })

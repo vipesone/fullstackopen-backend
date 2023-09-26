@@ -19,7 +19,7 @@ const personSchema = new mongoose.Schema({
 
 const Person = mongoose.model('Person', personSchema)
 
-if (process.argv.length == 3) {
+if (process.argv.length === 3) {
   Person.find({}).then(result => {
     console.log('phonebook:')
     result.forEach(person => {
@@ -27,7 +27,7 @@ if (process.argv.length == 3) {
     })
     mongoose.connection.close()
   })
-} else if (process.argv.length == 4) {
+} else if (process.argv.length === 4) {
   console.log('Phone number is missing')
   process.exit(1)
 } else {
@@ -36,7 +36,7 @@ if (process.argv.length == 3) {
     number: process.argv[4]
   })
 
-  person.save().then(result => {
+  person.save().then(() => {
     console.log('Person saved!')
     mongoose.connection.close()
   })
