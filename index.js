@@ -53,13 +53,9 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   // Make sure user has given name and number input.
   if (!request.body.name) {
-    return response.status(400).json({
-      message: 'Person should have a name'
-    }).end()
+    next({name: 'NameMissing'})
   } else if (!request.body.number) {
-    return response.status(400).json({
-      message: 'Person should have a phone number'
-    }).end()
+    next({name: 'NumberMissing'})
   }
 
   const person = new Person({
@@ -70,7 +66,7 @@ app.post('/api/persons', (request, response, next) => {
   person.save().then(savedPerson => {
     response.status(200).json(savedPerson)
   })
-  .catch(next)
+  .catch(error => next(error))
 })
 
 app.get('/info', (request, response, next) => {
@@ -90,6 +86,14 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'Malformed id' })
+  } else if (error.name == 'NameMissing') {
+    return response.status(400).json({
+      message: 'Person should have a name'
+    })
+  } else if (error.name == 'NumberMissing') {
+    return response.status(400).json({
+      message: 'Person should have a phone number'
+    })
   }
 
   next(error)
