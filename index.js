@@ -17,90 +17,86 @@ morgan.token('request-body', function (request, response) {
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :request-body'))
 
-let persons = [
-  {
-    "name": "Arto Hellas",
-    "number": "040-123456",
-    "id": 1
-  },
-  {
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523",
-    "id": 2
-  },
-  {
-    "name": "Dan Abramov",
-    "number": "12-43-234345",
-    "id": 3
-  },
-  {
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122",
-    "id": 4
-  }
-]
-
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({}).then(result => {
     response.json(result)
   })
-
+  .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  Person.findById(id).then(person => {
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id).then(person => {
     response.json(person)
   })
+  .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-
-  persons = persons.filter((person) => person.id !== id)
-
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id).then(result => {
+    response.status(204).end()
+  }).catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.put('/api/persons/:id', (request, response, next) => {
+  const person = {
+    name: request.body.name,
+    number: request.body.number,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.post('/api/persons', (request, response, next) => {
   // Make sure user has given name and number input.
   if (!request.body.name) {
     return response.status(400).json({
-      error: 'Person should have a name'
+      message: 'Person should have a name'
     }).end()
   } else if (!request.body.number) {
     return response.status(400).json({
-      error: 'Person should have a phone number'
+      message: 'Person should have a phone number'
     }).end()
   }
 
-  // Make sure name is kept unique in the phonebook.
-  Person.find({name: request.body.name}).then(result => {
-    console.log(result);
-    if (result.length > 0) {
-      return response.status(400).json({
-        error: 'Person is already in the phonebook'
-      })
-    } else {
-      const person = new Person({
-        name: request.body.name,
-        number: request.body.number
-      });
+  const person = new Person({
+    name: request.body.name,
+    number: request.body.number
+  });
 
-      person.save().then(savedPerson => {
-        response.status(200).json(savedPerson)
-      })
-    }
+  person.save().then(savedPerson => {
+    response.status(200).json(savedPerson)
   })
+  .catch(next)
 })
 
-app.get('/info', (request, response) => {
-  response.send(`
-    <p>Phonebook has info for ${persons.length} people</p>
-    <p>${new Date().toString()}</p>
-  `)
+app.get('/info', (request, response, next) => {
+  Person.find({}).then(result => {
+    response.send(`
+      <p>Phonebook has info for ${result.length} people</p>
+      <p>${new Date().toString()}</p>
+    `)
+  })
+  .catch(error => next(error))
+
 })
 
+// Error handling.
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'Malformed id' })
+  }
+
+  next(error)
+}
+app.use(errorHandler)
+
+// Start server.
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
