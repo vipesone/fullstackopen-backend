@@ -1,8 +1,9 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 
-
+app.use(cors())
 app.use(express.json())
 
 // Create custom token for morgan.
@@ -65,7 +66,7 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({
       error: 'Person should have a name'
     }).end()
-  } else if (!request.body.phone) {
+  } else if (!request.body.number) {
     return response.status(400).json({
       error: 'Person should have a phone number'
     }).end()
@@ -82,11 +83,13 @@ app.post('/api/persons', (request, response) => {
 
   persons.push({
     name: request.body.name,
-    phone: request.body.phone,
+    number: request.body.number,
     id: Math.floor(Math.random() * 10000)
   });
 
   return response.status(200).json({
+    name: request.body.name,
+    number: request.body.number,
     message: 'Person added successfully'
   }).end()
 })
