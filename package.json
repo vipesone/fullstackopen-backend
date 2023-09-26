@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:ui": "rm -rf dist && cd ../fullstackopen/part2/phonebook && npm run build && cp -r dist ../../../fullstackopen-backend",
-    "deploy:full": "npm run build:ui && git add . && git commit -m \"Build frontend for production\" && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m \"Build frontend for production\" && git push",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
