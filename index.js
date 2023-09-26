@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
   {
     "name": "Arto Hellas",
@@ -45,6 +47,38 @@ app.delete('/api/persons/:id', (request, response) => {
   persons = persons.filter((person) => person.id !== id)
 
   response.status(204).end()
+})
+
+app.post('/api/persons', (request, response) => {
+  // Make sure user has given name and number input.
+  if (!request.body.name) {
+    return response.status(400).json({
+      error: 'Person should have a name'
+    }).end()
+  } else if (!request.body.phone) {
+    return response.status(400).json({
+      error: 'Person should have a phone number'
+    }).end()
+  }
+
+  const existingPerson = persons.find((person) => person.name == request.body.name)
+
+  // Make sure name is kept unique in the phonebook.
+  if (existingPerson) {
+    return response.status(400).json({
+      error: 'Person is already in the phonebook'
+    }).end()
+  }
+
+  persons.push({
+    name: request.body.name,
+    phone: request.body.phone,
+    id: Math.floor(Math.random() * 10000)
+  });
+
+  return response.status(200).json({
+    message: 'Person added successfully'
+  }).end()
 })
 
 app.get('/info', (request, response) => {
